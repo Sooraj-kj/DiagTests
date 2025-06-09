@@ -16,7 +16,7 @@ PyPDF2==3.0.1
 pandas==2.2.2
 
 # Web search
-tavily-search==0.3.2
+langchain_community
 
 # Transformers and tokenizers (used by some HuggingFace models)
 transformers==4.41.2
