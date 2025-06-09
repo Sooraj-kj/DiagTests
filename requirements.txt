@@ -21,3 +21,5 @@ tavily-search==0.3.2
 # Transformers and tokenizers (used by some HuggingFace models)
 transformers==4.41.2
 tokenizers==0.19.1
+
+gunicorn
