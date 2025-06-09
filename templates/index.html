@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diagnostic Test Recommendation</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      padding-top: 70px;
+    }
+
+    .bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 100%;
+      min-height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+
+    .form-container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 40px;
+      border-radius: 15px;
+      margin-top: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    h1, h2 {
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+    }
+
+    .form-group label {
+      font-weight: bold;
+    }
+
+    .input-group-text {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+    }
+
+    .form-control::placeholder {
+      color: #ddd;
+    }
+
+    .btn-custom {
+      background-color: #17a2b8;
+      border: none;
+      color: white;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .btn-custom[disabled] {
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
+
+    .spinner-border {
+      width: 1.2rem;
+      height: 1.2rem;
+      border-width: 0.2em;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .result-box {
+      margin-top: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .test-button {
+      background-color: #17a2b8;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 15px 20px;
+      margin: 10px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      display: inline-block;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    .test-button:hover {
+      background-color: #138496;
+      transform: scale(1.05);
+    }
+
+    .description-box {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.15);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      color: #fff;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand font-weight-bold" href="#"><i class="fas fa-stethoscope"></i> DiagTests</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarAdvanced">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarAdvanced">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active"><a class="nav-link" href="#"><i class="fas fa-home"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-info-circle"></i> About</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" data-toggle="dropdown">
+              <i class="fas fa-th-list"></i> Services
+            </a>
+            <div class="dropdown-menu dropdown-menu-right bg-dark">
+              <a class="dropdown-item text-white" href="#">Blood Tests</a>
+              <a class="dropdown-item text-white" href="#">Radiology</a>
+              <a class="dropdown-item text-white" href="#">Genetic Screening</a>
+            </div>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-envelope"></i> Contact</a></li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0 mr-3">
+          <input class="form-control form-control-sm mr-sm-2 bg-light text-dark" type="search" placeholder="Search tests..." aria-label="Search">
+          <button class="btn btn-info btn-sm my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+        </form>
+        <a href="#" class="btn btn-outline-info btn-sm"><i class="fas fa-user-circle"></i> Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Background Video -->
+  <video autoplay muted loop class="bg-video">
+    <source src="{{ url_for('static', filename='videoplayback.mp4') }}" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+
+  <div class="container">
+    <div class="form-container">
+      <h1 class="text-center mb-4">Diagnostic Test Recommendation</h1>
+      <form id="test-form">
+        <div class="form-group">
+          <label for="symptoms">Symptoms</label>
+          <div class="input-group">
+            <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-notes-medical"></i></span></div>
+            <input type="text" id="symptoms" name="symptoms" class="form-control" placeholder="e.g., fever, fatigue, cough" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="vitals">Vitals</label>
+          <div class="input-group">
+            <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-heartbeat"></i></span></div>
+            <input type="text" id="vitals" name="vitals" class="form-control" placeholder="e.g., BP: 120/80, HR: 98 bpm" required>
+          </div>
+        </div>
+        <div class="form-group">
+  <label for="age">Age</label>
+  <div class="form-row">
+    <div class="col">
+      <div class="input-group">
+        <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user"></i></span></div>
+        <input type="number" id="age-years" name="age-years" class="form-control" placeholder="Years" min="0" required>
+      </div>
+    </div>
+    <div class="col">
+      <input type="number" id="age-months" name="age-months" class="form-control" placeholder="Months" min="0" max="11">
+    </div>
+  </div>
+</div>
+
+
+
+        <button type="submit" class="btn btn-custom btn-block mt-4" id="recommend-btn">
+          Get Recommendations
+          <span id="loader" class="spinner-border spinner-border-sm" style="display: none;"></span>
+        </button>
+      </form>
+
+      <div id="result-container" class="result-box" style="display: none;">
+        <h2 class="mb-3">Recommended Diagnostic Tests</h2>
+        <div id="test-results"></div>
+      </div>
+
+      <div id="disease-result-container" class="result-box" style="display: none; margin-top: 30px;">
+        <h2 class="mb-3">Possible Diseases</h2>
+        <div id="disease-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.getElementById('test-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const symptoms = document.getElementById('symptoms').value;
+  const vitals = document.getElementById('vitals').value;
+
+  const ageYears = parseInt(document.getElementById('age-years').value, 10) || 0;
+  const ageMonths = parseInt(document.getElementById('age-months').value, 10) || 0;
+
+  // Convert age to total years as float (e.g., 2 years 6 months -> 2.5)
+  const age = (ageYears + ageMonths / 12).toFixed(2);
+
+  const button = document.getElementById('recommend-btn');
+  const loader = document.getElementById('loader');
+    // Show spinner and disable button
+    loader.style.display = 'inline-block';
+    button.disabled = true;
+
+    const bodyData = `symptoms=${encodeURIComponent(symptoms)}&vitals=${encodeURIComponent(vitals)}&age=${encodeURIComponent(age)}`;
+    const response = await fetch('/get', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: bodyData
+    });
+
+    const data = await response.json();
+
+// Re-enable button and hide spinner
+loader.style.display = 'none';
+button.disabled = false;
+
+const resultsContainer = document.getElementById('test-results');
+resultsContainer.innerHTML = '';
+document.getElementById('result-container').style.display = 'block';
+
+data.tests.forEach((test, index) => {
+  // Create button for test name
+  const button = document.createElement('button');
+  button.className = 'test-button';
+  button.textContent = test.name;
+  button.onclick = () => {
+    const desc = document.getElementById(`test-desc${index}`);
+    desc.style.display = desc.style.display === 'block' ? 'none' : 'block';
+  };
+
+  // Create description box
+  const descBox = document.createElement('div');
+  descBox.className = 'description-box';
+  descBox.id = `test-desc${index}`;
+
+  // Add description text
+  let content = `<strong>Description:</strong> ${test.description}`;
+  
+  // Add test tips if available
+  if (test.tips) {
+    content += `<br><strong>Tips:</strong> ${test.tips}`;
+  }
+
+  descBox.innerHTML = content;
+
+  // Append to results container
+  resultsContainer.appendChild(button);
+  resultsContainer.appendChild(descBox);
+});
+
+
+    const diseaseContainer = document.getElementById('disease-results');
+    diseaseContainer.innerHTML = '';
+    document.getElementById('disease-result-container').style.display = 'block';
+
+    data.diseases.forEach((disease, index) => {
+      const button = document.createElement('button');
+      button.className = 'test-button';
+      button.textContent = disease.name;
+      button.onclick = () => {
+        const desc = document.getElementById(`disease-desc${index}`);
+        desc.style.display = desc.style.display === 'block' ? 'none' : 'block';
+      };
+
+      const descBox = document.createElement('div');
+      descBox.className = 'description-box';
+      descBox.id = `disease-desc${index}`;
+      descBox.textContent = disease.description;
+
+      diseaseContainer.appendChild(button);
+      diseaseContainer.appendChild(descBox);
+    });
+  });
+</script>
+
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
