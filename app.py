@@ -27,7 +27,7 @@ def search_faiss_tool(query: str):
 
 # Define web search tool
 def search_tavily_tool(query: str):
-    retriever = TavilySearchAPIRetriever(k=5)
+    retriever = TavilySearchAPIRetriever(k=3)
     docs = retriever.get_relevant_documents(query)
     return "\n\n".join([doc.page_content for doc in docs]) if docs else "No relevant web content found."
 
@@ -46,11 +46,11 @@ tools = [
 ]
 
 # Load LLM
-llm = ChatGroq(api_key=GROQ_API_KEY, model="llama-3.1-8b-instant")
-# llm = ChatGroq(
-#     api_key=GROQ_API_KEY,
-#     model="llama-3.3-70b-versatile"
-# )
+# llm = ChatGroq(api_key=GROQ_API_KEY, model="llama-3.1-8b-instant")
+llm = ChatGroq(
+    api_key=GROQ_API_KEY,
+    model="llama-3.3-70b-versatile"
+)
 
 # Initialize Agent
 agent = initialize_agent(
@@ -58,36 +58,43 @@ agent = initialize_agent(
     llm=llm,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
+    max_iterations = 5,
     handle_parsing_errors=True
 )
 
 # Parse agent output
 def parse_agent_output(text_data):
-    result = {"diseases": [], "tests": []}
-
-    # Normalize the text
-    if "Final Answer:" in text_data:
-        text_data = text_data.split("Final Answer:")[-1].strip()
+    result = {"diseases": [], "tests": [], "tips": []}
 
     if "POSSIBLE DISEASES:" in text_data and "DIAGNOSTIC TESTS:" in text_data:
+        # Split by sections
         diseases_part = text_data.split("DIAGNOSTIC TESTS:")[0].replace("POSSIBLE DISEASES:", "").strip()
-        tests_and_tips_part = text_data.split("DIAGNOSTIC TESTS:")[1].strip()
+        tests_and_tips_part = text_data.split("DIAGNOSTIC TESTS:")[1]
 
+        # Check if TIPS section exists
+        if "TIPS:" in tests_and_tips_part:
+            tests_part = tests_and_tips_part.split("TIPS:")[0].strip()
+            tips_part = tests_and_tips_part.split("TIPS:")[1].strip()
+        else:
+            tests_part = tests_and_tips_part.strip()
+            tips_part = ""
+
+        # Parse diseases
         for line in diseases_part.split('\n'):
-            if line.strip().startswith("-"):
-                parts = line.strip().lstrip("- ").split(" - ", 1)
-                if len(parts) == 2:
-                    name, description = parts
-                    result["diseases"].append({
-                        "name": name.strip(),
-                        "description": description.strip()
-                    })
-
-        for line in tests_and_tips_part.split('\n'):
             if not line.strip().startswith("-"):
                 continue
+            parts = line.strip().lstrip("- ").split(" - ", 1)
+            if len(parts) == 2:
+                name, description = parts
+                result["diseases"].append({
+                    "name": name.strip(),
+                    "description": description.strip()
+                })
 
-            # Try splitting into 3 parts (test - reason - tips)
+        # Parse tests (expect 3 parts now: name - description - tips)
+        for line in tests_part.split('\n'):
+            if not line.strip().startswith("-"):
+                continue
             parts = line.strip().lstrip("- ").split(" - ")
             if len(parts) == 3:
                 name, description, tips = parts
@@ -95,17 +102,25 @@ def parse_agent_output(text_data):
                 name, description = parts
                 tips = ""
             else:
-                continue  # Skip malformed line
-
-            # Sanity check: avoid invalid test names (e.g., long paragraphs)
-            if len(name) > 100 or " " not in name:
-                continue
+                # fallback for unexpected format
+                name = parts[0]
+                description = "No description"
+                tips = ""
 
             result["tests"].append({
                 "name": name.strip(),
                 "description": description.strip(),
                 "tips": tips.strip()
             })
+
+        # Parse overall tips section
+        # if tips_part:
+        #     for line in tips_part.split('\n'):
+        #         if not line.strip().startswith("-"):
+        #             continue
+        #         tip = line.strip().lstrip("- ").strip()
+        #         if tip:
+        #             result["tips"].append(tip)
 
     else:
         result["tests"].append({
@@ -115,7 +130,6 @@ def parse_agent_output(text_data):
         })
 
     return result
-
 
 
 @app.route("/")
