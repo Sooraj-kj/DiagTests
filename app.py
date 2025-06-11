@@ -11,6 +11,7 @@ load_dotenv()
 # Initialize Flask
 app = Flask(__name__)
 
+port = int(os.environ.get("PORT", 5000))
 # Set API keys
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
@@ -195,4 +196,4 @@ Patient Age: {age}. Symptoms: {symptoms}. Vitals: {vitals}
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=False,host="0.0.0.0",port=port)
