@@ -71,7 +71,8 @@ def parse_agent_output(text_data):
         # Split by sections
         diseases_part = text_data.split("DIAGNOSTIC TESTS:")[0].replace("POSSIBLE DISEASES:", "").strip()
         tests_and_tips_part = text_data.split("DIAGNOSTIC TESTS:")[1]
-
+        # print(diseases_part, "first")
+        # print(tests_and_tips_part,"second")
         # Check if TIPS section exists
         if "TIPS:" in tests_and_tips_part:
             tests_part = tests_and_tips_part.split("TIPS:")[0].strip()
@@ -85,18 +86,20 @@ def parse_agent_output(text_data):
             if not line.strip().startswith("-"):
                 continue
             parts = line.strip().lstrip("- ").split(" - ", 1)
+            # print(parts,"parts")
             if len(parts) == 2:
                 name, description = parts
                 result["diseases"].append({
                     "name": name.strip(),
                     "description": description.strip()
                 })
-
+        # print(result, "first")
         # Parse tests (expect 3 parts now: name - description - tips)
         for line in tests_part.split('\n'):
             if not line.strip().startswith("-"):
                 continue
             parts = line.strip().lstrip("- ").split(" - ")
+            # print(parts,"test-parts")
             if len(parts) == 3:
                 name, description, tips = parts
             elif len(parts) == 2:
@@ -113,7 +116,7 @@ def parse_agent_output(text_data):
                 "description": description.strip(),
                 "tips": tips.strip()
             })
-
+        # print(result, "second")
         # Parse overall tips section
         # if tips_part:
         #     for line in tips_part.split('\n'):
@@ -129,7 +132,7 @@ def parse_agent_output(text_data):
             "description": "Agent output did not match expected format.",
             "tips": ""
         })
-
+    print(result, "hggfffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
     return result
 
 
@@ -144,7 +147,7 @@ def recommend():
         vitals = request.form.get("vitals", "")
         age = request.form.get("age", "")
         query = f"Patient Age: {age}. Symptoms: {symptoms}. Vitals: {vitals}"
-
+        print(query, "qury coming")
         prompt = f"""
 You are a medical assistant AI that provides:
 
@@ -170,8 +173,9 @@ Patient Age: {age}. Symptoms: {symptoms}. Vitals: {vitals}
 
         agent_output = agent.run(prompt)
         parsed_output = parse_agent_output(agent_output)
-
-        if not parsed_output["tests"] and not parsed_output["diseases"]:
+        # print(agent_output)
+        print(parsed_output, "parsed output")
+        if not parsed_output.get("tests", []) and not parsed_output.get("diseases", []):
             return jsonify({
                 "diseases": [],
                 "tests": [{
@@ -182,6 +186,18 @@ Patient Age: {age}. Symptoms: {symptoms}. Vitals: {vitals}
             })
 
         return jsonify(parsed_output)
+
+        # if not parsed_output["tests"] and not parsed_output["diseases"]:
+        #     return jsonify({
+        #         "diseases": [],
+        #         "tests": [{
+        #             "name": "No diagnostic output",
+        #             "description": "Agent could not generate any test recommendations or disease names.",
+        #             "tips": ""
+        #         }]
+        #     })
+
+        # return jsonify(parsed_output)
 
     except Exception as e:
         print("Agent Error:", str(e))

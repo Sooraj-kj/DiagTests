@@ -12,13 +12,13 @@ sentence-transformers==2.6.1
 
 # PDF and data parsing (optional but common)
 PyPDF2==3.0.1
-pandas==2.2.2
+# pandas==2.2.2
 
 # Web search
 langchain_community
 
 # Transformers and tokenizers (used by some HuggingFace models)
-transformers==4.41.2
-tokenizers==0.19.1
+# transformers==4.41.2
+# tokenizers==0.19.1
 
 gunicorn
